@@ -72,5 +72,5 @@ if (romBuffer.length < romSize) {
 }
 
 // Write the ROM to a file.
-fs.writeFileSync('./roms/atari2600/redscreen.a26', romBuffer);
-console.log(`Wrote ${romBuffer.length} bytes to redscreen.a26`);
+fs.writeFileSync('./roms/atari2600/1 - redscreen.a26', romBuffer);
+console.log(`Wrote ${romBuffer.length} bytes to 1 - redscreen.a26`);

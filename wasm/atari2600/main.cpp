@@ -77,6 +77,57 @@ void updateZeroFlag(uint8_t value)
     status &= ~0x02; // Clear Zero flag
 }
 
+// This function overlays a simple playfield pattern into the screen buffer.
+// It reads PF0 from 0x0D, PF1 from 0x0E, and PF2 from 0x0F, builds a 48-bit mirrored pattern,
+// then for each pixel of the screen (or for a defined vertical region) it overrides the background
+// if the corresponding playfield bit is 1.
+void overlayPlayfield()
+{
+  // Read the playfield registers.
+  uint8_t PF0 = memory[0x0D];
+  uint8_t PF1 = memory[0x0E];
+  uint8_t PF2 = memory[0x0F];
+
+  // Combine PF0, PF1, PF2 into a 24-bit left-half pattern.
+  // (Typically, PF0 is only 4 bits in a real TIA, but for simplicity we use full 8 bits here.)
+  uint32_t patternLeft = (PF0 << 16) | (PF1 << 8) | PF2; // 24-bit pattern
+
+  // Build a 48-bit pattern by mirroring the left half.
+  bool playfield[48];
+  for (int i = 0; i < 24; i++)
+  {
+    // Extract bit i from the left half (bit 23 is the most significant bit).
+    int bit = (patternLeft >> (23 - i)) & 1;
+    playfield[i] = (bit != 0);
+    playfield[47 - i] = playfield[i]; // mirror it.
+  }
+
+  // Choose a playfield color (a palette index).
+  // For example, use 0x70 which might map to white (depending on your palette).
+  uint8_t playfieldColor = 0x70;
+
+  // For simplicity, overlay the playfield on the entire screen.
+  // Map each x coordinate to a bit in the 48-bit playfield:
+  for (int y = 0; y < SCREEN_HEIGHT; y++)
+  {
+    for (int x = 0; x < SCREEN_WIDTH; x++)
+    {
+      // Compute the playfield bit index for this x.
+      // We map x in [0, SCREEN_WIDTH) to an index in [0, 48).
+      int bitIndex = (x * 48) / SCREEN_WIDTH;
+      if (bitIndex < 0)
+        bitIndex = 0;
+      if (bitIndex >= 48)
+        bitIndex = 47;
+      // If the corresponding playfield bit is set, override the pixel.
+      if (playfield[bitIndex])
+      {
+        screen[y * SCREEN_WIDTH + x] = playfieldColor;
+      }
+    }
+  }
+}
+
 extern "C"
 {
 
@@ -315,6 +366,9 @@ extern "C"
     }
     // Update the screen buffer with the current background color.
     memset(screen, COLUBK, sizeof(screen));
+
+    // Overlay the playfield pattern.
+    overlayPlayfield();
   }
 
   /**

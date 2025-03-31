@@ -67,5 +67,5 @@ if (romBuffer.length < romSize) {
 }
 
 // Write the ROM to a file.
-fs.writeFileSync('./roms/atari2600/cycle-colors.a26', romBuffer);
-console.log(`Wrote ${romBuffer.length} bytes to cycle-colors.a26`);
+fs.writeFileSync('./roms/atari2600/2 - cycle-colors.a26', romBuffer);
+console.log(`Wrote ${romBuffer.length} bytes to 2 - cycle-colors.a26`);
