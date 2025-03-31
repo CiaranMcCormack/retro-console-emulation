@@ -71,20 +71,6 @@ if (romBuffer.length < romSize) {
   romBuffer = Buffer.concat([romBuffer, padding]);
 }
 
-/*
-  The Atari 2600 uses a small amount of internal RAM, and the ROM (cartridge data)
-  is typically mapped into a high memory area. In our program, we need a seed value
-  to generate pseudo-random background colors. The ROM code first reads a value from
-  memory address $80 (a zero-page location), modifies it (using LSR and EOR instructions),
-  and writes it back to both $80 (to update the seed) and $08 (our chosen TIA register for
-  background color).
-
-  Without explicitly initializing memory at $80, it would likely be 0 (or undefined), so the
-  algorithm wouldn’t work correctly. Therefore, we set the value at $80 to 0xAB (a nonzero seed)
-  before running the ROM code.
-*/
-romBuffer[0x80] = 0xAB;
-
 // Write the ROM to a file.
 fs.writeFileSync('./roms/atari2600/redscreen.a26', romBuffer);
 console.log(`Wrote ${romBuffer.length} bytes to redscreen.a26`);

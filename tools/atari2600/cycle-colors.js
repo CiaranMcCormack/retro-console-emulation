@@ -66,17 +66,6 @@ if (romBuffer.length < romSize) {
   romBuffer = Buffer.concat([romBuffer, padding]);
 }
 
-/*
-  In Atari 2600 cartridges, the ROM is typically mapped into the high memory region.
-  For our purposes, we assume the ROM is loaded at address 0xF000.
-  
-  Before running the program, we initialize the seed at memory location $80 with a nonzero
-  value (0xAB). This seed is used by the program to generate a sequence of background colors.
-  Without this initialization, the seed would be 0 (or undefined), and the incrementing
-  behavior wouldn’t work correctly.
-*/
-romBuffer[0x80] = 0xAB;
-
 // Write the ROM to a file.
 fs.writeFileSync('./roms/atari2600/cycle-colors.a26', romBuffer);
 console.log(`Wrote ${romBuffer.length} bytes to cycle-colors.a26`);
