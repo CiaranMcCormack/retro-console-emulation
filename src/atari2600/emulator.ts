@@ -65,17 +65,10 @@ function initEmulator(rom: Uint8Array, Module: any, canvas: HTMLCanvasElement) {
 
     // Render emulator screen.
     const screenPtr = Module._getScreen();
-    const pixels = new Uint8Array(Module.HEAPU8.buffer, screenPtr, width * height);
-    const img = new Uint8Array(width * height * 4);
-    for (let i = 0; i < pixels.length; i++) {
-      const v = pixels[i]; // Use the actual grayscale value from the emulator.
-      img[i * 4] = v;      // Red
-      img[i * 4 + 1] = v;  // Green
-      img[i * 4 + 2] = v;  // Blue
-      img[i * 4 + 3] = 255; // Alpha (opaque)
-    }
+    const pixels = new Uint8Array(Module.HEAPU8.buffer, screenPtr, width * height * 3);
+    
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, img);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, width, height, 0, gl.RGB, gl.UNSIGNED_BYTE, pixels);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
 
     stats.end();

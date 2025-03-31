@@ -9,13 +9,12 @@ export const vertexShaderSource = `
 `;
 
 export const fragmentShaderSource = `
-  precision mediump float;
-  varying vec2 v_texCoord;
-  uniform sampler2D u_texture;
-  void main() {
-    float pixel = texture2D(u_texture, v_texCoord).r;
-    gl_FragColor = vec4(vec3(pixel), 1.0);
-  }
+precision mediump float;
+varying vec2 v_texCoord;
+uniform sampler2D u_texture;
+void main() {
+  gl_FragColor = texture2D(u_texture, v_texCoord);
+}
 `;
 
 export function createShader(

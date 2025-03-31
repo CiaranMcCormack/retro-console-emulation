@@ -40,6 +40,33 @@ uint8_t SP = 0xFF;
 // Global variable to control verbosity of opcode logging.
 bool verboseLogging = false;
 
+// Define a structure for an RGB color.
+struct RGB
+{
+  uint8_t r, g, b;
+};
+
+// Define a palette of 16 colors (a common approximation for Atari 2600 colors).
+const int PALETTE_SIZE = 16;
+RGB palette[PALETTE_SIZE] = {
+    {0x00, 0x00, 0x00}, // 0: Black (#000000) – Maps 0x00 to 0x0F
+    {0x1D, 0x2B, 0x53}, // 1: Dark Blue (#1D2B53) – Maps 0x10 to 0x1F
+    {0x7E, 0x25, 0x53}, // 2: Dark Purple (#7E2553) – Maps 0x20 to 0x2F
+    {0x00, 0x87, 0x51}, // 3: Dark Green (#008751) – Maps 0x30 to 0x3F
+    {0xAB, 0x52, 0x36}, // 4: Brown (#AB5236) – Maps 0x40 to 0x4F
+    {0x5F, 0x57, 0x4F}, // 5: Dark Gray (#5F574F) – Maps 0x50 to 0x5F
+    {0xC2, 0xC3, 0xC7}, // 6: Light Gray (#C2C3C7) – Maps 0x60 to 0x6F
+    {0xFF, 0xF1, 0xE8}, // 7: White (#FFF1E8) – Maps 0x70 to 0x7F
+    {0xFF, 0x00, 0x00}, // 8: Red (#FF0000) – Maps 0x80 to 0x8F
+    {0xFF, 0xA3, 0x00}, // 9: Orange (#FFA300) – Maps 0x90 to 0x9F
+    {0xFF, 0xEC, 0x27}, // 10: Yellow (#FFEC27) – Maps 0xA0 to 0xAF
+    {0x00, 0xE4, 0x36}, // 11: Bright Green (#00E436) – Maps 0xB0 to 0xBF
+    {0x29, 0xAD, 0xFF}, // 12: Sky Blue (#29ADFF) – Maps 0xC0 to 0xCF
+    {0x83, 0x76, 0x9C}, // 13: Lavender (#83769C) – Maps 0xD0 to 0xDF
+    {0xFF, 0x77, 0xA8}, // 14: Pink (#FF77A8) – Maps 0xE0 to 0xEF
+    {0xFF, 0xCC, 0xAA}  // 15: Peach (#FFCCAA) – Maps 0xF0 to 0xFF
+};
+
 // ----- Helper Functions for 6502 Flags -----
 // Set or clear the Zero flag based on a value.
 void updateZeroFlag(uint8_t value)
@@ -80,10 +107,10 @@ extern "C"
       printf("Warning: ROM size (%d bytes) exceeds 4K. Only the first 4096 bytes will be used.\n", size);
       size = 4096;
     }
-    memcpy(memory, romData, size);
-
-    // Reset the program counter.
-    pc = 0;
+    // Load the ROM into memory starting at 0xF000.
+    memcpy(memory + 0xF000, romData, size);
+    // Set the program counter to the start of the ROM.
+    pc = 0xF000;
 
     if (!verboseLogging)
     {
@@ -112,18 +139,18 @@ extern "C"
     uint8_t opcode = memory[pc];
     switch (opcode)
     {
-    // LDA Zero Page – Load accumulator from zero-page.
-    case 0xA5:
+    // LDA immediate – Load accumulator with immediate value.
+    case 0xA9:
     {
-      uint8_t zp_addr = memory[pc + 1];
-      A = memory[zp_addr];
+      uint8_t operand = memory[pc + 1];
+      A = operand;
       updateZeroFlag(A);
       if (verboseLogging)
-        printf("LDA $%02X: A = 0x%02X at pc: 0x%04X\n", zp_addr, A, pc);
+        printf("LDA #$%02X: A = 0x%02X at pc: 0x%04X\n", operand, A, pc);
       pc += 2;
       break;
     }
-    // LSR A – Logical shift right the accumulator.
+    // LSR A – Logical shift right of the accumulator.
     case 0x4A:
     {
       uint8_t carry = A & 0x01;
@@ -138,7 +165,7 @@ extern "C"
       pc += 1;
       break;
     }
-    // EOR Immediate – Exclusive OR accumulator with immediate value.
+    // EOR immediate – Exclusive OR accumulator with immediate value.
     case 0x49:
     {
       uint8_t operand = memory[pc + 1];
@@ -149,23 +176,20 @@ extern "C"
       pc += 2;
       break;
     }
-    // STA Zero Page – Store accumulator into zero page.
+    // STA zero page – Store accumulator into a zero page address.
     case 0x85:
     {
       uint8_t zp_addr = memory[pc + 1];
       memory[zp_addr] = A;
-      // Update background color if writing to address 0x08 (or 0x09, if desired).
+      // If writing to 0x08 or 0x09, update COLUBK.
       if (zp_addr == 0x08 || zp_addr == 0x09)
-      {
-        printf("Setting COLUBK to 0x%02X\n", A);
         COLUBK = A;
-      }
       if (verboseLogging)
         printf("STA $%02X: Stored A = 0x%02X at pc: 0x%04X\n", zp_addr, A, pc);
       pc += 2;
       break;
     }
-    // LDY Immediate – Load Y register with an immediate value.
+    // LDY immediate – Load Y register with immediate value.
     case 0xA0:
     {
       uint8_t operand = memory[pc + 1];
@@ -176,7 +200,7 @@ extern "C"
       pc += 2;
       break;
     }
-    // LDX Immediate – Load X register with an immediate value.
+    // LDX immediate – Load X register with immediate value.
     case 0xA2:
     {
       uint8_t operand = memory[pc + 1];
@@ -195,7 +219,7 @@ extern "C"
         printf("DEX: X = 0x%02X at pc: 0x%04X\n", X, pc);
       pc += 1;
       break;
-    // BNE – Branch if the Zero flag is clear.
+    // BNE – Branch if Zero flag is clear.
     case 0xD0:
     {
       int8_t offset = static_cast<int8_t>(memory[pc + 1]);
@@ -221,22 +245,23 @@ extern "C"
         printf("DEY: Y = 0x%02X at pc: 0x%04X\n", Y, pc);
       pc += 1;
       break;
-    // JMP Absolute – Jump to a specified absolute address.
+    // JMP Absolute – Jump to the absolute address specified by the next two bytes.
     case 0x4C:
     {
       uint16_t addr = memory[pc + 1] | (memory[pc + 2] << 8);
       if (verboseLogging)
-        printf("JMP $%04X: Jumping to address $%04X at pc: 0x%04X\n", addr, addr, pc);
+        printf("JMP $%04X: Jump to absolute address at pc: 0x%04X\n", addr, pc);
       pc = addr;
       break;
     }
-    // Default: For any unsupported opcode, print an error and advance pc by 1.
+    // Default: Unsupported opcode.
     default:
       printf("Unsupported opcode: 0x%02X at pc: 0x%04X\n", opcode, pc);
       pc += 1;
       break;
     }
   }
+
   /**
    * Run a number of cycles based on the elapsed time.
    *
@@ -265,7 +290,25 @@ extern "C"
    */
   uint8_t *getScreen()
   {
-    return screen;
+    for (int i = 0; i < SCREEN_WIDTH * SCREEN_HEIGHT; i++)
+    {
+      uint8_t pixel = screen[i];
+      int index = pixel / 16; // Scale 0–255 to 0–15.
+      if (index < 0 || index >= PALETTE_SIZE)
+      {
+        // Fallback: use magenta.
+        rgbScreen[i * 3 + 0] = 255;
+        rgbScreen[i * 3 + 1] = 0;
+        rgbScreen[i * 3 + 2] = 255;
+      }
+      else
+      {
+        rgbScreen[i * 3 + 0] = palette[index].r;
+        rgbScreen[i * 3 + 1] = palette[index].g;
+        rgbScreen[i * 3 + 2] = palette[index].b;
+      }
+    }
+    return rgbScreen;
   }
 
   /**
