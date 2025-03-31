@@ -7,6 +7,11 @@
   </head>
   <body>
     <h1>Chip8 Emulator</h1>
+    <!-- Canvas for WebGL rendering -->
+    <canvas id="glCanvas"></canvas>
+    <!-- Chip8 glue code (make sure chip8.js is built and placed appropriately) -->
+    <script src="/chip8.js"></script>
+    <!-- Your main TypeScript output -->
     <script type="module" src="/src/chip8/emulator.ts"></script>
   </body>
 </html>

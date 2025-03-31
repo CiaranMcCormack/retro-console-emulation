@@ -6,11 +6,16 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:chip8": "em++ ./wasm/chip8/*.cpp -O3 -s WASM=1 -s EXPORTED_FUNCTIONS='[\"_init\",\"_loadProgram\",\"_run\",\"_getScreen\",\"_getScreenWidth\",\"_getScreenHeight\",\"_getSoundTimer\",\"_setKeyDown\",\"_setKeyUp\",\"_malloc\",\"_free\"]' -s EXPORTED_RUNTIME_METHODS='[\"ccall\",\"cwrap\"]' -o ./public/chip8.js"
   },
   "devDependencies": {
     "@types/node": "^22.13.14",
     "typescript": "~5.7.2",
-    "vite": "^6.2.0"
+    "vite": "^6.2.0",
+    "@types/stats.js": "^0.17.3"
+  },
+  "dependencies": {
+    "stats.js": "^0.17.0"
   }
 }
