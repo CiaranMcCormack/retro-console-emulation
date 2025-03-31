@@ -7,6 +7,11 @@
   </head>
   <body>
     <h1>Atari 2600 Emulator</h1>
+    <!-- Canvas for WebGL rendering -->
+    <canvas id="glCanvas"></canvas>
+    <!-- Atari2600 glue code (make sure atari2600.js is built and placed appropriately) -->
+    <script src="/atari2600.js"></script>
+    <!-- Your main TypeScript output -->
     <script type="module" src="/src/atari2600/emulator.ts"></script>
   </body>
 </html>
