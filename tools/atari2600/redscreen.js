@@ -57,7 +57,7 @@ const program = [
   0xD0, 0xFD,       // BNE $000D — Branch to address $000D if result of DEX is nonzero (0xFD = -3 offset).
   0x88,             // DEY       — Decrement Y.
   0xD0, 0xF8,       // BNE $000B — Branch to address $000B if result of DEY is nonzero (0xF8 = -8 offset).
-  0x4C, 0x00, 0x00  // JMP $0000 — Jump to the beginning to repeat the process.
+  0x4C, 0x00, 0xF0  // JMP $F000 — Jump to the beginning to repeat the process.
 ];
 
 const romSize = 4096; // Standard Atari 2600 ROM size is 4K.

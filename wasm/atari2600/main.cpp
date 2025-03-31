@@ -112,7 +112,7 @@ extern "C"
     // Set the program counter to the start of the ROM.
     pc = 0xF000;
 
-    if (!verboseLogging)
+    if (verboseLogging)
     {
       printf("Loaded ROM into memory:\n");
       for (int i = 0; i < size; i++)
@@ -139,6 +139,19 @@ extern "C"
     uint8_t opcode = memory[pc];
     switch (opcode)
     {
+    // 0xA5: LDA Zero Page – Load the accumulator from a zero-page memory location.
+    case 0xA5:
+    {
+      uint8_t zp_addr = memory[pc + 1];
+      A = memory[zp_addr];
+      updateZeroFlag(A);
+      if (verboseLogging)
+        printf("LDA $%02X: Load accumulator from zero page address $%02X, A = 0x%02X at pc: 0x%04X\n",
+               zp_addr, zp_addr, A, pc);
+      pc += 2;
+      break;
+    }
+
     // LDA immediate – Load accumulator with immediate value.
     case 0xA9:
     {
@@ -254,6 +267,23 @@ extern "C"
       pc = addr;
       break;
     }
+      // 0xE6: INC Zero Page – Increment the memory value at a zero-page address.
+    case 0xE6:
+    {
+      uint8_t zp_addr = memory[pc + 1];
+      memory[zp_addr]++; // Increment the value at the specified zero-page address.
+      updateZeroFlag(memory[zp_addr]);
+      // Optionally update the Negative flag based on the result.
+      if (memory[zp_addr] & 0x80)
+        status |= 0x80;
+      else
+        status &= ~0x80;
+      if (verboseLogging)
+        printf("INC $%02X: Incremented memory at zero page address $%02X, new value = 0x%02X at pc: 0x%04X\n",
+               zp_addr, zp_addr, memory[zp_addr], pc);
+      pc += 2;
+      break;
+    }
     // Default: Unsupported opcode.
     default:
       printf("Unsupported opcode: 0x%02X at pc: 0x%04X\n", opcode, pc);
@@ -270,11 +300,15 @@ extern "C"
    */
   void run(double deltaMs)
   {
-    // Calculate how many cycles to run given deltaMs.
-    // const double cyclesPerMs = 1190.0; // Approximately 1,190 cycles per millisecond.
-    // int cyclesToRun = static_cast<int>(deltaMs * cyclesPerMs);
     int cyclesToRun = 1; // For simplicity, run one cycle per call.
-    // printf("Delta = %f, Running %d cycles\n", deltaMs, cyclesToRun);
+    bool normalMode = true;
+    if (normalMode)
+    {
+      // Calculate how many cycles to run given deltaMs.
+      const double cyclesPerMs = 1190.0; // Approximately 1,190 cycles per millisecond.
+      cyclesToRun = static_cast<int>(deltaMs * cyclesPerMs);
+    }
+    //  printf("Delta = %f, Running %d cycles\n", deltaMs, cyclesToRun);
     for (int i = 0; i < cyclesToRun; i++)
     {
       emulateCycle();
