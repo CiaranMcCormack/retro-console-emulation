@@ -68,11 +68,11 @@ function initEmulator(rom: Uint8Array, Module: any, canvas: HTMLCanvasElement) {
     const pixels = new Uint8Array(Module.HEAPU8.buffer, screenPtr, width * height);
     const img = new Uint8Array(width * height * 4);
     for (let i = 0; i < pixels.length; i++) {
-      const v = pixels[i] ? 255 : 0;
-      img[i * 4] = v;
-      img[i * 4 + 1] = v;
-      img[i * 4 + 2] = v;
-      img[i * 4 + 3] = 255;
+      const v = pixels[i]; // Use the actual grayscale value from the emulator.
+      img[i * 4] = v;      // Red
+      img[i * 4 + 1] = v;  // Green
+      img[i * 4 + 2] = v;  // Blue
+      img[i * 4 + 3] = 255; // Alpha (opaque)
     }
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, img);
