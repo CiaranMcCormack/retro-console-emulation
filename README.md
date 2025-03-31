@@ -70,16 +70,15 @@ This project uses Vite as the development server and build tool for the TypeScri
    yarn dev  
    (or npm run dev)
 
-   The server will typically serve your application at http://localhost:3000. Ensure your index.html (located in the public folder) loads chip8.js before your main TypeScript module.
+   The server will typically serve your application at http://localhost:5174. 
 
 ## Project Structure
 
 - **public/**
   - `chip8.js` — Emscripten glue code
   - `chip8.wasm` — Compiled WebAssembly module
-  - `index.html` — HTML file that loads chip8.js and main.ts
 - **src/**
-  - `main.ts` — Main TypeScript entry point for WebGL rendering and emulator integration
+  - `chip8/emulator.ts` — Main TypeScript entry point for WebGL rendering and emulator integration
 - **wasm/**
   - `chip8.cpp` — C++ source code for the emulator
 - `package.json` — NPM/Yarn configuration and scripts
